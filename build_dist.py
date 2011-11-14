@@ -5,7 +5,7 @@ def euclid(x,y):
 	run=0;
 	for i in range(1,51):
 		run=run+(x[i]-y[i])**2
-	return sqrt(run)
+	return run#sqrt(run)
 
 conn = connect("baa.ratios.sqlite")
 curs = conn.cursor()
