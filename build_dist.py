@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 from sqlite3 import *
-
+from math import sqrt
 def euclid(x,y):
 	run=0;
-	for i in range(1,51)
-		return 0
+	for i in range(1,51):
+		run=run+(x[i]-y[i])**2
+	return sqrt(run)
 
 conn = connect("baa.ratios.sqlite")
 curs = conn.cursor()
