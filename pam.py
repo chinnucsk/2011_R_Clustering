@@ -5,9 +5,9 @@ from optparse import OptionParser
 MEDOIDS = [] # An array of medoid gene names
 NUM_COLS = 51
 
+d_conn=connect("baa.ratios.sqlite")
+c = d_conn.cursor()
 def row_dist(a,b):
-	d_conn=connect("baa.ratios.sqlite")
-	c = d_conn.cursor()
 	name = (a[0]+b[0] if a[0]<b[0] else b[0]+a[0])
 	print name
 	query = "select * from dist where hash = \'%s\' limit 1"%name
