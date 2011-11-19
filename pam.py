@@ -6,10 +6,16 @@ MEDOIDS = [] # An array of medoid gene names
 NUM_COLS = 51
 
 def row_dist(a,b):
-	d=0
-	for i in range(1,NUM_COLS+1): #the first col is the gene name
-		d = d+ abs(a[i]-b[i])
-	return d
+	d_conn=connect("baa.ratios.sqlite")
+	c = d_conn.cursor()
+	name = (a[0]+b[0] if a[0]<b[0] else b[0]+a[0])
+	print name
+	query = "select * from dist where hash = \'%s\' limit 1"%name
+	c.execute(query)
+	for r in c:
+		d=r
+	print d[0], d[1]
+	return d[1]
 
 
 parser = OptionParser()
