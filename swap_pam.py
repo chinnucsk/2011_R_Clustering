@@ -10,25 +10,36 @@ def row_dist(a,b):
   c.execute(query)
   for r in c:
     d=r
-  #print d[0], d[1]
   return d[1]
 
 def mswap(m,o):
-	MEDOIDS.remove(m)
-	MEDOIDS.append(o)
+	global MEDOIDS
+	MEDOIDS[MEDOIDS.index(m)]=o # swaps in place for continuity
 	fconn=connect(options.dbname)
 	fcurs=fconn.cursor()
 	fcurs.execute("update ba_ratios set isMedoid=0 where row_names=\'%s\'"%m[0])
 	fcurs.execute("update ba_ratios set isMedoid=1, medoid=\'%s\' where row_names=\'%s\'"%(o[0],o[0]))
-	fcurs.execute("update ba_Ratios set medoid=' ' where isMedoid=0")
+	fcurs.execute("update ba_ratios set medoid=' ' where isMedoid=0")
 	fconn.commit()
-	assign_to_medoids()
+	#assign_to_medoids() # Don't do this.
 
 def assign_to_medoids():
+	global MEDOIDS
+	print "Reassigning data to Medoids"
+	# Associate Medoids with themselves
 	fconn=connect(options.dbname)
 	fcurs=fconn.cursor()
-	for i in range(0, options.k):
-		fcurs.execute("select * from ba_ratios limit 1 offset %d"%i)
+	for g in MEDOIDS:
+		fcurs.execute("update ba_ratios set medoid=\'%s\' where row_names=\'%s\'"%(g[0],g[0]))
+	fconn.commit()
+	fcurs2=fconn.cursor()
+	prog = -1
+	for i in range(0, (n/10)+1):
+		i=i*10
+		if ((100*i)/n)%20==0 and not ((100*i)/n)==prog :
+			prog = (100*i)/n
+			print "%d percent complete" % prog
+		fcurs.execute("select * from ba_ratios limit 10 offset %d"%i)
 		for r in fcurs:
 			d=-1
 			for m in MEDOIDS:
@@ -41,10 +52,13 @@ def assign_to_medoids():
 				if d > newdist:
 					d=newdist
 					winner=m[0]
-			fcurs.execute("update ba_ratios set medoid=\'%s\' where row_names=\'%s\'"%(winner, r[0]))
-			fconn.commit()
+			fcurs2.execute("update ba_ratios set medoid=\'%s\' where row_names=\'%s\'"%(winner, r[0]))
+		fconn.commit()
+	print "Done"
 
 def get_total_cost():
+	global MEDOIDS
+	print "computing total cost"
 	curr_cost=0.0
 	for m in MEDOIDS:
 		curr_cost += get_medoid_cost(m)
@@ -59,12 +73,14 @@ def get_medoid_cost(m):
 	for i in range(0,fn):
 		fcurs.execute("select * from ba_ratios where isMedoid=0 and medoid=\'%s\' limit 1 offset %d"%(m[0], i))
 		cost+= row_dist(m, fcurs.fetchone())
-	#print cost
+	print "medoid ", m[0], " cost ", cost
 	return cost
 
 msaved=[]
 csaved=0.0
 def save_config(medoids, cost):
+	global csaved
+	global msaved
 	msaved=medoids
 	csaved=cost
 
@@ -104,31 +120,37 @@ for r in curs:
 	options.k = len(MEDOIDS)
 
 """ Save the current total cost """
-print "Computing initial cost"
 curr_cost = get_total_cost()
 print "Initial cost: %d"%curr_cost
+save_config(MEDOIDS, curr_cost)
+print "csaved ", csaved
 
 """ For Each MEDOID m """
 changed=True
+broke=False
 while changed:
+	print "Swapping on the new set of medoids"
 	changed=False
 	for m in MEDOIDS:
+		mc=m
 		""" For Each non-medoid o """ 
 		for i in range(0,n-len(MEDOIDS)):
-			save_config(MEDOIDS, curr_cost)
 			curs.execute("select * from ba_ratios where isMedoid=0 limit 1 offset %d"%i)
 			for o in curs:
 				""" Swap o with m """
-				print "Swapping med ", m[0], " with non-med ", o[0]
-				mswap(m,o)
+				print "Swapping med ", mc[0], " with non-med ", o[0]
+				mswap(mc,o)
+				assign_to_medoids()
 				curr_cost=get_total_cost()
 				print "Cost is ", curr_cost
 				if curr_cost < csaved:
 					save_config(MEDOIDS, curr_cost)
+					mc=o
 					changed=True
 					print "Found an improvement from the old medoid."
 				else:
-					mswap(o,m)
+					print "Incumbant cost ", csaved," lower than new cost ", curr_cost
+					mswap(o,mc)
 					save_config(MEDOIDS, csaved)
 print "No more improvements could be found. Re assigning to nearest medoids now"
 assign_to_medoids()
