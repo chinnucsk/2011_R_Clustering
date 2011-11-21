@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from sqlite3 import *
 from optparse import OptionParser
+import sys
 
 def row_dist(a,b):
   first, second = ((a[0], b[0]) if a[0]<b[0] else (b[0], a[0]))
@@ -34,12 +35,13 @@ def assign_to_medoids():
 	fconn.commit()
 	fcurs2=fconn.cursor()
 	prog = -1
-	for i in range(0, (n/10)+1):
-		i=i*10
-		if ((100*i)/n)%20==0 and not ((100*i)/n)==prog :
+	for i in range(0, (n/100)+1):
+		i=i*100
+		if ((100*i)/n)%1==0 and not ((100*i)/n)==prog :
 			prog = (100*i)/n
-			print "%d percent complete" % prog
-		fcurs.execute("select * from ba_ratios limit 10 offset %d"%i)
+			sys.stdout.write("\r%d percent complete" % prog)
+			sys.stdout.flush()
+		fcurs.execute("select * from ba_ratios limit 100 offset %d"%i)
 		for r in fcurs:
 			d=-1
 			for m in MEDOIDS:
@@ -73,7 +75,8 @@ def get_medoid_cost(m):
 	for i in range(0,fn):
 		fcurs.execute("select * from ba_ratios where isMedoid=0 and medoid=\'%s\' limit 1 offset %d"%(m[0], i))
 		cost+= row_dist(m, fcurs.fetchone())
-	print "medoid ", m[0], " cost ", cost
+	sys.stdout.write("\rmedoid "+ m[0]+ " cost "+ str(cost))
+	sys.stdout.flush()
 	return cost
 
 msaved=[]
@@ -147,9 +150,9 @@ while changed:
 					save_config(MEDOIDS, curr_cost)
 					mc=o
 					changed=True
-					print "Found an improvement from the old medoid."
+					print "Found an \033[1;32mimprovement\033[1;m from the old medoid."
 				else:
-					print "Incumbant cost ", csaved," lower than new cost ", curr_cost
+					print "\033[1;32mIncumbant\033[1;m cost ", csaved," lower than new cost ", curr_cost
 					mswap(o,mc)
 					save_config(MEDOIDS, csaved)
 print "No more improvements could be found. Re assigning to nearest medoids now"
