@@ -56,7 +56,7 @@ def assign_to_medoids():
 					winner=m[0]
 			fcurs2.execute("update ba_ratios set medoid=\'%s\' where row_names=\'%s\'"%(winner, r[0]))
 		fconn.commit()
-	print "Done"
+	print "\nDone"
 
 def get_total_cost():
 	global MEDOIDS
@@ -145,7 +145,7 @@ while changed:
 				mswap(mc,o)
 				assign_to_medoids()
 				curr_cost=get_total_cost()
-				print "Cost is ", curr_cost
+				print "\nCost is ", curr_cost
 				if curr_cost < csaved:
 					save_config(MEDOIDS, curr_cost)
 					mc=o
