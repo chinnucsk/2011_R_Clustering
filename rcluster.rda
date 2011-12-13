@@ -1,0 +1,20 @@
+require(cluster)
+require(RSQLite)
+load('baa.ratios.rda')
+
+x <- clara(ratios, 173)
+
+out <- x$clustering
+
+rownames(ratios) <- gsub("\\.", "\\_", rownames(ratios))
+colnames(ratios) <- gsub("\\.", "\\_", colnames(ratios))
+
+mm <- dbDriver("SQLite")
+
+fileout <- "final_clusters.sqlite"
+
+con <- dbConnect(mm, dbname = fileout)
+
+dbWriteTable(con, "ba_ratios", data.frame(ratios))
+
+dbWriteTable(con, "k173", data.frame(out))
