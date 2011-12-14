@@ -4,14 +4,14 @@ from optparse import OptionParser
 import sys
 
 def row_dist(a,b):
-  first, second = ((a[0], b[0]) if a[0]<b[0] else (b[0], a[0]))
-  d_conn=connect("dist/%s.sqlite"%first)
-  c = d_conn.cursor()
-  query = "select * from dist where gene = \'%s\' limit 1"%second
-  c.execute(query)
-  for r in c:
-    d=r
-  return d[1]
+	first, second = ((a[0], b[0]) if a[0]<b[0] else (b[0], a[0]))
+	d_conn=connect("dist2/%s.sqlite"%first)
+	c = d_conn.cursor()
+	query = "select * from dist where gene = \'%s\' limit 1"%second
+	c.execute(query)
+	for r in c:
+		d=r
+		return d[1]
 
 def mswap(m,o):
 	global MEDOIDS
@@ -56,7 +56,7 @@ def assign_to_medoids():
 					winner=m[0]
 			fcurs2.execute("update ba_ratios set medoid=\'%s\' where row_names=\'%s\'"%(winner, r[0]))
 		fconn.commit()
-	print "Done"
+	print "\nDone"
 
 def get_total_cost():
 	global MEDOIDS
@@ -145,7 +145,7 @@ while changed:
 				mswap(mc,o)
 				assign_to_medoids()
 				curr_cost=get_total_cost()
-				print "Cost is ", curr_cost
+				print "\nCost is ", curr_cost
 				if curr_cost < csaved:
 					save_config(MEDOIDS, curr_cost)
 					mc=o

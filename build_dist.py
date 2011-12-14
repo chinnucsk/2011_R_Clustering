@@ -21,7 +21,7 @@ print "%d genes found"%n
 for i in range(0, n):
 	curs.execute("select * from ba_ratios limit 1 offset %s"%i)
 	for r in curs:
-		cout = connect("dist/%s.sqlite"%r[0])
+		cout = connect("dist_temp/%s.sqlite"%r[0])
 		curout = cout.cursor()
 		curout.execute("create table dist (gene text, d real, id integer primary key autoincrement)") 
 		for j in range(i, n):
