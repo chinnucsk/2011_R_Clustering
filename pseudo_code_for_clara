@@ -1,0 +1,33 @@
+Clara:
+
+Inputs:
+	x, the matrix to be clustered
+	k, the number of clusters to be formed
+	sample_size, the size of samples to run PAM on
+	iterations, the number of times to run PAM (to reduce sample bias)
+
+Algorithm:
+
+	iterations times:
+		select sample_size random objects from x
+		run PAM on the selected objects, k = k
+		Add all non-selected objects from x to the closest medoid in the selected sample
+	retain only the result with the lowest cost
+		(cost is measured in average distance for each object from its medoid)
+
+Since this uses PAM as a subroutine, here's the definition for PAM:
+
+Inputs:
+	x, the matrix to be clustered
+	k, the number of clusters to be formed
+
+Algorithm:
+
+	Select k random points as medoids from x
+	Associate each data point that isn't a medoid to the closest medoid
+	Until no swaps are made:
+		For every non-medoid o:
+			Swap o with it's medoid m
+			Recompute the cost of the configuration
+		Retain the configuration with the lowest cost
+		
